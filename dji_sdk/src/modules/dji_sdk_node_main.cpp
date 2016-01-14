@@ -217,6 +217,13 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
     nh_private.param("app_bundle_id", app_bundle_id, std::string("12345678901234567890123456789012"));
     nh_private.param("enc_key", enc_key,
             std::string("e7bad64696529559318bb35d0a8c6050d3b88e791e1808cfe8f7802150ee6f0d"));
+    nh_private.param("waypoint_speed", waypoint_speed, 4.0);
+    nh_private.param("waypoint_region", waypoint_region, 5.0);
+    std::string debug_file_name;
+    nh_private.param("debug_file_name", debug_file_name, std::string("/home/ubuntu/wp_test.log"));
+    if ((debug_file = fopen(debug_file_name.c_str(), "+a")) != NULL) {
+        fprintf(debug_file, "\n\n################################\n\n");
+    }
 
     // activation
     user_act_data.app_id = app_id;

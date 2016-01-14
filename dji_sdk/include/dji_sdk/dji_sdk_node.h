@@ -5,6 +5,7 @@
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/UInt8.h>
 #include <boost/bind.hpp>
+#include <Eigen/StdVector>
 #include <dji_sdk/dji_sdk.h>
 #include <actionlib/server/simple_action_server.h>
 
@@ -171,6 +172,55 @@ private:
             double gps_r_lon, double gps_r_lat);
 
     dji_sdk::LocalPosition gps_convert_ned(dji_sdk::GlobalPosition loc);
+
+    double waypoint_speed {4};
+    double waypoint_region {5};
+
+    struct WaypointData {
+        unsigned int index;
+        double region;
+        int heading;
+        unsigned int loiter;
+        double speed;
+        dji_sdk::GlobalPosition global_location;
+        Eigen::Vector3d local_location;
+        Eigen::Vector3d direction;
+    };
+
+    std::vector<WaypointData> waypoints;
+
+    attitude_data_t velocity_setpoint;
+
+    WaypointData *current_waypoint;
+
+    FILE *debug_file {NULL};
+    void debug_log(const char* format, ...) {
+        va_list args;
+//        fprintf( stderr, "Error: " );
+        va_start( args, format );
+        if (debug_file != NULL) {
+            vfprintf( debug_file, format, args );
+        }
+        va_end( args );
+//        fprintf( stderr, "\n" );
+    }
+
+    inline void vector_to_waypoint(Eigen::Vector3d& vector, WaypointData& wp);
+    inline void vector_between_locations(Eigen::Vector3d& vector,
+            dji_sdk::GlobalPosition& from, dji_sdk::GlobalPosition& to);
+    inline void vector_between_locations(Eigen::Vector3d& vector,
+            dji_sdk::LocalPosition& from, dji_sdk::LocalPosition& to);
+    inline void global_to_local(Eigen::Vector3d& local, dji_sdk::GlobalPosition& global);
+
+    void send_velocity_setpoint(Eigen::Vector3d direction, double speed, int yaw);
+    bool init_waypoints(const dji_sdk::WaypointList& wp_list);
+    bool fly_waypoints();
+    bool fly_to_waypoint(WaypointData& wp);
+    bool turn_at_waypoint(WaypointData& wp);
+    bool loiter_at_waypoint(WaypointData& wp);
+    double turn_duration(WaypointData& wp);
+    void log_waypoints();
+    void log_waypoint(const WaypointData& wp);
 };
 
 #endif
