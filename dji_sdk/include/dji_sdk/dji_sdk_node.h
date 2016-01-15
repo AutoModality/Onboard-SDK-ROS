@@ -175,6 +175,7 @@ private:
 
     double waypoint_speed {4};
     double waypoint_region {5};
+    double waypoint_turn_time {0.5};
 
     struct WaypointData {
         unsigned int index;

@@ -199,6 +199,11 @@ double DJISDKNode::turn_duration(WaypointData& wp) {
 
 bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
 
+    waypoint_navigation_feedback.index_progress = wp.index;
+    double x_dist = wp.local_location[0] - local_position.x;
+    double y_dist = wp.local_location[1] - local_position.y;
+    double z_dist = wp.local_location[2] - local_position.z;
+
     debug_log("FLYING TO WAYPOINT %d\n", wp.index);
     for (;;) {
         if(waypoint_navigation_action_server->isPreemptRequested()) {
@@ -216,6 +221,18 @@ bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
         cur_vec.normalize();
         debug_log(" X:%f  Y:%f  Z:%f  H:%d\n", cur_vec[0], cur_vec[1], cur_vec[2], wp.heading);
         send_velocity_setpoint(cur_vec, wp.speed, wp.heading);
+
+        double det_x = wp.local_location[0] - local_position.x;
+        double det_y = wp.local_location[1] - local_position.y;
+        double det_z = wp.local_location[2] - local_position.z;
+        int latitude_progress = 100 - std::abs((int) (det_x / x_dist));
+        int longitude_progress = 100 - std::abs((int) (det_y / y_dist));
+        int altitude_progress = 100 - std::abs((int) (det_z / z_dist));
+        waypoint_navigation_feedback.latitude_progress = latitude_progress;
+        waypoint_navigation_feedback.longitude_progress = longitude_progress;
+        waypoint_navigation_feedback.altitude_progress = altitude_progress;
+        waypoint_navigation_action_server->publishFeedback(waypoint_navigation_feedback);
+
         usleep(20000);
     }
 

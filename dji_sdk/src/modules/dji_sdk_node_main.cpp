@@ -219,6 +219,7 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
             std::string("e7bad64696529559318bb35d0a8c6050d3b88e791e1808cfe8f7802150ee6f0d"));
     nh_private.param("waypoint_speed", waypoint_speed, 4.0);
     nh_private.param("waypoint_region", waypoint_region, 5.0);
+    nh_private.param("waypoint_turn_time", waypoint_turn_time, 0.5);
     std::string debug_file_name;
     nh_private.param("debug_file_name", debug_file_name, std::string("/home/ubuntu/wp_test.log"));
     if ((debug_file = fopen(debug_file_name.c_str(), "a")) != NULL) {
@@ -239,6 +240,8 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
     printf("app version: 0x0%X\n", user_act_data.app_ver);
     printf("app key: %s\n", user_act_data.app_key);
     printf("=================================================\n");
+    ROS_INFO("DJI: speed: %f, region: %f, turn_time: %f",
+            waypoint_speed, waypoint_region, waypoint_turn_time);
 
     if (DJI_Setup(serial_name.c_str(), baud_rate) < 0) {
         printf("Serial Port Cannot Open\n");
