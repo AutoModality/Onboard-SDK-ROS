@@ -211,12 +211,20 @@ private:
     inline void vector_between_locations(Eigen::Vector3d& vector,
             dji_sdk::LocalPosition& from, dji_sdk::LocalPosition& to);
     inline void global_to_local(Eigen::Vector3d& local, dji_sdk::GlobalPosition& global);
+    inline double angle_beween_vectors(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2) {
+        double v_dot = v1.dot(v2);
+        double v_mag = v1.norm() * v2.norm();
+        double theta = acos(v_dot / v_mag);
+        return theta;
+    }
+
+    double time_to_turn(double dist, double speed, const Eigen::Vector3d& v1, const Eigen::Vector3d& v2);
 
     void send_velocity_setpoint(Eigen::Vector3d direction, double speed, int yaw);
     bool init_waypoints(const dji_sdk::WaypointList& wp_list);
     bool fly_waypoints();
     bool fly_to_waypoint(WaypointData& wp);
-    bool turn_at_waypoint(WaypointData& wp);
+    bool turn_at_waypoint(WaypointData& wp, WaypointData& wpn);
     bool loiter_at_waypoint(WaypointData& wp);
     double turn_duration(WaypointData& wp);
     void log_waypoints();

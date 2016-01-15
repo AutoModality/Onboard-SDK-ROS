@@ -176,10 +176,25 @@ bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
     return true;
 }
 
-double DJISDKNode::turn_duration(WaypointData& wp) {
-    // Initially just a fixed time turn duration
+double DJISDKNode::time_to_turn(double dist, double speed, const Eigen::Vector3d& v1, const Eigen::Vector3d& v2) {
+    double theta = angle_beween_vectors(v1, v2);
+    double radius = (dist * sin(theta / 2.0)) / sin((C_PI - theta) / 2.0);
+    double sector_length = radius * (C_PI - theta);
+    double t = abs(sector_length / speed);
+    debug_log("    theta: %f,  radius: %f,  sector: %f,  time: %f\n",
+            theta, radius, sector_length, t);
+    return t;
+}
 
-    return 0.5;
+double DJISDKNode::turn_duration(WaypointData& wp) {
+    Eigen::Vector3d cur_vec;
+    vector_to_waypoint(cur_vec, wp);
+    double dist = cur_vec.norm();
+    cur_vec.normalize();
+    double turn_time = time_to_turn(dist, waypoint_speed, cur_vec, wp.direction);
+    // Initially just a fixed time turn duration
+    return turn_time;
+//    return 0.5;
 }
 
 bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
@@ -193,8 +208,7 @@ bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
         vector_to_waypoint(cur_vec, wp);
         double dist = cur_vec.norm();
         debug_log("    DIST: %f  ", dist);
-        if (dist < wp.region)
-        {
+        if (dist < wp.region) {
             debug_log("    *** WITHIN RANGE ***\n", dist);
             return true;
         }
@@ -208,7 +222,24 @@ bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
     return true;
 }
 
-bool DJISDKNode::turn_at_waypoint(WaypointData& wp) {
+bool DJISDKNode::turn_at_waypoint(WaypointData& wp, WaypointData& wpn) {
+    debug_log("===== TURNING AT WAYPOINT\n");
+    double duration = turn_duration(wp);
+    double delta_num = 50 / duration;
+    Eigen::Vector3d cur_vec;
+    debug_log("    FROM: %f  %f  %f", cur_vec[0], cur_vec[1], cur_vec[2]);
+    debug_log("      TO: %f  %f  %f",
+            wp.direction[0], wp.direction[1], wp.direction[2]);
+    vector_to_waypoint(cur_vec, wp);
+    cur_vec.normalize();
+    Eigen::Vector3d delta_vec = (wp.direction - cur_vec) / delta_num;
+    for (double end_time = ros::Time::now().toSec() + duration;
+            ros::Time::now().toSec() < end_time;) {
+        cur_vec = cur_vec + delta_vec;
+        debug_log("     SET: %f  %f  %f", cur_vec[0], cur_vec[1], cur_vec[2]);
+        send_velocity_setpoint(cur_vec, waypoint_speed, wp.heading);
+        usleep(20000);
+    }
     return true;
 }
 
@@ -223,18 +254,22 @@ bool DJISDKNode::fly_waypoints()
             return false;
         }
 
-        if (waypoints[i].loiter > 0) {
-            if (!loiter_at_waypoint(waypoints[i])) {
-                return false;
+        if (i < (waypoints.size() - 1)) {
+            if (waypoints[i].loiter > 0) {
+                if (!loiter_at_waypoint(waypoints[i])) {
+                    return false;
+                }
             }
-        }
-        else
-        {
-            if (!turn_at_waypoint(waypoints[i])) {
-                return false;
+            else
+            {
+                if (!turn_at_waypoint(waypoints[i], waypoints[i+1])) {
+                    return false;
+                }
             }
         }
     }
+
+    debug_log("\nFINISHED WITH WAYPOINT LIST\n");
 
     return true;
 }
