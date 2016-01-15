@@ -143,7 +143,7 @@ void DJISDKNode::log_waypoint(const WaypointData& wp) {
 
 void DJISDKNode::log_waypoints() {
     for (int i = 0; i < waypoints.size(); i++) {
-        debug_log("WAYPOINT # %d", i);
+        debug_log("WAYPOINT # %d\n", i);
         log_waypoint(waypoints[i]);
     }
 }
@@ -187,14 +187,14 @@ double DJISDKNode::time_to_turn(double dist, double speed, const Eigen::Vector3d
 }
 
 double DJISDKNode::turn_duration(WaypointData& wp) {
-    Eigen::Vector3d cur_vec;
-    vector_to_waypoint(cur_vec, wp);
-    double dist = cur_vec.norm();
-    cur_vec.normalize();
-    double turn_time = time_to_turn(dist, waypoint_speed, cur_vec, wp.direction);
+//    Eigen::Vector3d cur_vec;
+//    vector_to_waypoint(cur_vec, wp);
+//    double dist = cur_vec.norm();
+//    cur_vec.normalize();
+//    double turn_time = time_to_turn(dist, waypoint_speed, cur_vec, wp.direction);
     // Initially just a fixed time turn duration
-    return turn_time;
-//    return 0.5;
+//    return turn_time;
+    return 0.5;
 }
 
 bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
@@ -227,8 +227,8 @@ bool DJISDKNode::turn_at_waypoint(WaypointData& wp, WaypointData& wpn) {
     double duration = turn_duration(wp);
     double delta_num = 50 / duration;
     Eigen::Vector3d cur_vec;
-    debug_log("    FROM: %f  %f  %f", cur_vec[0], cur_vec[1], cur_vec[2]);
-    debug_log("      TO: %f  %f  %f",
+    debug_log("    FROM: %f  %f  %f\n", cur_vec[0], cur_vec[1], cur_vec[2]);
+    debug_log("      TO: %f  %f  %f\n",
             wp.direction[0], wp.direction[1], wp.direction[2]);
     vector_to_waypoint(cur_vec, wp);
     cur_vec.normalize();
@@ -236,7 +236,7 @@ bool DJISDKNode::turn_at_waypoint(WaypointData& wp, WaypointData& wpn) {
     for (double end_time = ros::Time::now().toSec() + duration;
             ros::Time::now().toSec() < end_time;) {
         cur_vec = cur_vec + delta_vec;
-        debug_log("     SET: %f  %f  %f", cur_vec[0], cur_vec[1], cur_vec[2]);
+        debug_log("     SET: %f  %f  %f\n", cur_vec[0], cur_vec[1], cur_vec[2]);
         send_velocity_setpoint(cur_vec, waypoint_speed, wp.heading);
         usleep(20000);
     }
