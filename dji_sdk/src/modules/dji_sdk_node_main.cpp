@@ -221,7 +221,7 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
     nh_private.param("waypoint_region", waypoint_region, 5.0);
     std::string debug_file_name;
     nh_private.param("debug_file_name", debug_file_name, std::string("/home/ubuntu/wp_test.log"));
-    if ((debug_file = fopen(debug_file_name.c_str(), "+a")) != NULL) {
+    if ((debug_file = fopen(debug_file_name.c_str(), "a")) != NULL) {
         fprintf(debug_file, "\n\n################################\n\n");
     }
 
