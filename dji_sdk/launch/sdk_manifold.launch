@@ -8,8 +8,8 @@
 		<param name="app_version" type="int" value="1"/>
 		<param name="app_bundle_id" type="string" value="Welcome to use dji-sdk"/>
 		<param name="enc_key" type="string" value="afe96210ea022d24e17808d30229be0cfa5d41d75bb37f4965f1502b6d3cc62b"/>
-		<param name="waypoint_speed" type="double" value="4.0"/>
-		<param name="waypoint_region" type="double" value="5.0"/>
+		<param name="waypoint_speed" type="double" value="4.1"/>
+		<param name="waypoint_region" type="double" value="5.2"/>
 		<param name="waypoint_turn_time" type="double" value="0.5"/>
 	</node>
 </launch>

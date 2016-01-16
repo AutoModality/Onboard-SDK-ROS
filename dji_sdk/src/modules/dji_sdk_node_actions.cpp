@@ -142,6 +142,11 @@ void DJISDKNode::log_waypoint(const WaypointData& wp) {
 }
 
 void DJISDKNode::log_waypoints() {
+    debug_log("Current postion\n");
+    debug_log("    Global: %f, %f, %f\n", 
+        global_position.latitude, global_position.longitude, global_position.altitude);
+    debug_log("    Local: %f, %f, %f\n", 
+        local_position.x, local_position.y, local_position.z);
     for (int i = 0; i < waypoints.size(); i++) {
         debug_log("WAYPOINT # %d\n", i);
         log_waypoint(waypoints[i]);
@@ -158,7 +163,7 @@ bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
         wpd.index = i;
         wpd.global_location.latitude = wp.latitude;
         wpd.global_location.longitude = wp.longitude;
-        wpd.global_location.altitude = wp.altitude;
+        wpd.global_location.altitude = global_position.altitude + wp.altitude;
         global_to_local(wpd.local_location, wpd.global_location);
         wpd.loiter = wp.staytime;
         wpd.heading = wp.heading;
@@ -172,6 +177,8 @@ bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
         vector_between_locations(waypoints[i].direction,
                 waypoints[i].global_location , waypoints[i+1].global_location);
     }
+
+    log_waypoints();
 
     return true;
 }
@@ -204,7 +211,13 @@ bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
     double y_dist = wp.local_location[1] - local_position.y;
     double z_dist = wp.local_location[2] - local_position.z;
 
-    debug_log("FLYING TO WAYPOINT %d\n", wp.index);
+    debug_log("FLYING TO WAYPOINT %d  %f, %f, %f\n", 
+              wp.index, x_dist, y_dist, z_dist);
+    debug_log("Current postion\n");
+    debug_log("    Global: %f, %f, %f\n", 
+        global_position.latitude, global_position.longitude, global_position.altitude);
+    debug_log("    Local: %f, %f, %f\n", 
+        local_position.x, local_position.y, local_position.z);
     for (;;) {
         if(waypoint_navigation_action_server->isPreemptRequested()) {
             return false;
