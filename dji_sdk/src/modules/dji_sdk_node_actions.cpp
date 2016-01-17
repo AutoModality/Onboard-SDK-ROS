@@ -59,12 +59,14 @@ bool DJISDKNode::process_waypoint(dji_sdk::Waypoint new_waypoint)
         latitude_progress = 100 - std::abs((int) det_x);
         longitude_progress = 100 - std::abs((int) det_y);
         altitude_progress = 100 - std::abs((int) det_z);
-        ROS_INFO("WWW: Progress before %d  %d  %d", latitude_progress, longitude_progress, altitude_progress);
+        ROS_INFO("WWW: Progress before %d  %d  %d", latitude_progress, 
+	         longitude_progress, altitude_progress);
 
         if (std::abs(diff_x) < 15) latitude_progress = 100;
         if (std::abs(diff_y) < 15) longitude_progress = 100;
         if (std::abs(dst_altitude - local_position.z) < 0.5) altitude_progress = 100;
-        ROS_INFO("WWW: Progress after %d  %d  %d", latitude_progress, longitude_progress, altitude_progress);
+        ROS_INFO("WWW: Progress after %d  %d  %d", latitude_progress, 
+                 longitude_progress, altitude_progress);
 
         waypoint_navigation_feedback.latitude_progress = latitude_progress;
         waypoint_navigation_feedback.longitude_progress = longitude_progress;
@@ -127,6 +129,17 @@ void DJISDKNode::send_velocity_setpoint(Eigen::Vector3d direction, double speed,
     velocity_setpoint.pitch_or_y = direction[1] * speed;
     velocity_setpoint.thr_z = direction[2] * speed;
     velocity_setpoint.yaw = yaw;
+    double vel1 = sqrt((velocity.vx * velocity.vx) +
+                      (velocity.vy * velocity.vy) +
+                      (velocity.vz * velocity.vz));
+    double vel2 = sqrt((velocity_setpoint.roll_or_x * velocity_setpoint.roll_or_x) +
+                       (velocity_setpoint.pitch_or_y * velocity_setpoint.pitch_or_y) +
+                       (velocity_setpoint.thr_z * velocity_setpoint.thr_z));
+    debug_log("%0.4f  CUR VELOCITY: %f  %f  %f = %f\n", 
+	      ros::Time::now().toSec(), velocity.vx, velocity.vy, velocity.vz, vel1);
+    debug_log("       SET VELOCITY: %f  %f  %f = %f\n",
+              velocity_setpoint.roll_or_x, velocity_setpoint.pitch_or_y, 
+              velocity_setpoint.thr_z, vel2);
 
     DJI_Pro_Attitude_Control(&velocity_setpoint);
 }
@@ -156,7 +169,7 @@ void DJISDKNode::log_waypoints() {
 bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
 {
     waypoints.clear();
-    ROS_INFO("WWW: Initializing %ld waypoints", wp_list.waypoint_list.size());
+    ROS_INFO("WWW: Initializing %u waypoints", wp_list.waypoint_list.size());
     for (int i = 0; i < wp_list.waypoint_list.size(); i++) {
         const dji_sdk::Waypoint wp = wp_list.waypoint_list[i];
         WaypointData wpd;
@@ -176,6 +189,7 @@ bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
     for (int i = 0; i < waypoints.size()-1; i++) {
         vector_between_locations(waypoints[i].direction,
                 waypoints[i].global_location , waypoints[i+1].global_location);
+	waypoints[i].direction.normalize();
     }
 
     log_waypoints();
@@ -201,7 +215,7 @@ double DJISDKNode::turn_duration(WaypointData& wp) {
 //    double turn_time = time_to_turn(dist, waypoint_speed, cur_vec, wp.direction);
     // Initially just a fixed time turn duration
 //    return turn_time;
-    return 0.5;
+    return waypoint_turn_time;
 }
 
 bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
@@ -253,20 +267,22 @@ bool DJISDKNode::fly_to_waypoint(WaypointData& wp) {
 }
 
 bool DJISDKNode::turn_at_waypoint(WaypointData& wp, WaypointData& wpn) {
-    debug_log("===== TURNING AT WAYPOINT\n");
     double duration = turn_duration(wp);
-    double delta_num = 50 / duration;
+    double delta_num = 50 * duration;
     Eigen::Vector3d cur_vec;
-    debug_log("    FROM: %f  %f  %f\n", cur_vec[0], cur_vec[1], cur_vec[2]);
-    debug_log("      TO: %f  %f  %f\n",
-            wp.direction[0], wp.direction[1], wp.direction[2]);
     vector_to_waypoint(cur_vec, wp);
     cur_vec.normalize();
     Eigen::Vector3d delta_vec = (wp.direction - cur_vec) / delta_num;
+    debug_log("===== TURNING AT WAYPOINT\n");
+    debug_log("    FROM: %f  %f  %f\n", cur_vec[0], cur_vec[1], cur_vec[2]);
+    debug_log("      TO: %f  %f  %f\n",
+            wp.direction[0], wp.direction[1], wp.direction[2]);
+    debug_log("   DELTA: %f  %f  %f\n",
+            delta_vec[0], delta_vec[1], delta_vec[2]);
     for (double end_time = ros::Time::now().toSec() + duration;
             ros::Time::now().toSec() < end_time;) {
         cur_vec = cur_vec + delta_vec;
-        debug_log("     SET: %f  %f  %f\n", cur_vec[0], cur_vec[1], cur_vec[2]);
+	cur_vec.normalize();
         send_velocity_setpoint(cur_vec, waypoint_speed, wp.heading);
         usleep(20000);
     }
@@ -472,7 +488,7 @@ bool DJISDKNode::waypoint_navigation_action_callback(const dji_sdk::WaypointNavi
 //    new_waypoint_list = goal->waypoint_list;
 //
 //    bool isSucceeded;
-//    ROS_INFO("WWW: Processing %ld waypoints", new_waypoint_list.waypoint_list.size());
+//    ROS_INFO("WWW: Processing  waypoints", new_waypoint_list.waypoint_list.size());
 //    for (int i = 0; i < new_waypoint_list.waypoint_list.size(); i++) {
 //     const dji_sdk::Waypoint new_waypoint = new_waypoint_list.waypoint_list[i];
 //     waypoint_navigation_feedback.index_progress = i;

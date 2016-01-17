@@ -219,9 +219,10 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
             std::string("e7bad64696529559318bb35d0a8c6050d3b88e791e1808cfe8f7802150ee6f0d"));
     nh_private.param("waypoint_speed", waypoint_speed, 4.0);
     nh_private.param("waypoint_region", waypoint_region, 5.0);
-    nh_private.param("waypoint_turn_time", waypoint_turn_time, 0.5);
+    nh_private.param("waypoint_turn_time", waypoint_turn_time, 1.5);
     std::string debug_file_name;
-    nh_private.param("debug_file_name", debug_file_name, std::string("/home/ubuntu/wp_test.log"));
+    //nh_private.param("debug_file_name", debug_file_name, std::string("/home/ubuntu/wp_test.log"));
+    debug_file_name = BagLogger::instance()->getLogFileName("TRAJ");
     if ((debug_file = fopen(debug_file_name.c_str(), "a")) != NULL) {
         fprintf(debug_file, "\n\n################################\n\n");
     }

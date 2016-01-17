@@ -7,6 +7,7 @@
 #include <boost/bind.hpp>
 #include <Eigen/StdVector>
 #include <dji_sdk/dji_sdk.h>
+#include <dji_sdk/bag_logger.h>
 #include <actionlib/server/simple_action_server.h>
 
 #define C_EARTH (double) 6378137.0
