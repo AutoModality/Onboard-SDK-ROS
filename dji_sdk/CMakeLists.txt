@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   roscpp
   rospy
+  rosbag
   std_msgs
   actionlib_msgs 
   actionlib
