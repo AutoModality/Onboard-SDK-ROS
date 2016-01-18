@@ -20,6 +20,9 @@
 #define LOG_MSG(topic, msg) { if (BagLogger::instance()->isLogging()) { \
             BagLogger::instance()->bag.write((topic), ros::Time::now(), (msg)); } }
 
+#define LOG_MSG_STAMP(topic, msg, t) { if (BagLogger::instance()->isLogging()) { \
+            BagLogger::instance()->bag.write((topic), (t), (msg)); } }
+
 class BagLogger {
     static BagLogger *s_instance_;
 

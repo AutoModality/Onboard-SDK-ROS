@@ -29,6 +29,7 @@ void DJISDKNode::broadcast_callback()
         attitude_quaternion.wz = recv_sdk_std_msgs.w.z;
         attitude_quaternion.ts = recv_sdk_std_msgs.time_stamp;
         attitude_quaternion_publisher.publish(attitude_quaternion);
+        LOG_MSG_STAMP("/dji_sdk/attitude_quaternion", attitude_quaternion, current_time);
     }
 
     //update global_position msg
@@ -42,6 +43,7 @@ void DJISDKNode::broadcast_callback()
         global_position.altitude = recv_sdk_std_msgs.pos.alti;
         global_position.health = recv_sdk_std_msgs.pos.health_flag;
         global_position_publisher.publish(global_position);
+        LOG_MSG_STAMP("/dji_sdk/global_position", global_position, current_time);
 
         //TODO:
         // FIX BUG about flying at lat = 0
@@ -65,6 +67,7 @@ void DJISDKNode::broadcast_callback()
         local_position.ts = global_position.ts;
         local_position_ref = local_position;
         local_position_publisher.publish(local_position);
+        LOG_MSG_STAMP("/dji_sdk/local_position", local_position, current_time);
     }
 
 
@@ -77,6 +80,7 @@ void DJISDKNode::broadcast_callback()
         velocity.vy = recv_sdk_std_msgs.v.y;
         velocity.vz = recv_sdk_std_msgs.v.z;
         velocity_publisher.publish(velocity);
+        LOG_MSG_STAMP("/dji_sdk/velocity", velocity, current_time);
     }
 
     //update acceleration msg
@@ -88,6 +92,7 @@ void DJISDKNode::broadcast_callback()
         acceleration.ay = recv_sdk_std_msgs.a.y;
         acceleration.az = recv_sdk_std_msgs.a.z;
         acceleration_publisher.publish(acceleration);
+        LOG_MSG_STAMP("/dji_sdk/acceleration", acceleration, current_time);
     }
 
     //update gimbal msg
@@ -99,6 +104,7 @@ void DJISDKNode::broadcast_callback()
         gimbal.pitch = recv_sdk_std_msgs.gimbal.y;
         gimbal.yaw = recv_sdk_std_msgs.gimbal.z;
         gimbal_publisher.publish(gimbal);
+        LOG_MSG_STAMP("/dji_sdk/gimbal", gimbal, current_time);
     }
 
     //update odom msg
@@ -119,6 +125,7 @@ void DJISDKNode::broadcast_callback()
         odometry.twist.twist.linear.y = velocity.vy;
         odometry.twist.twist.linear.z = velocity.vz;
         odometry_publisher.publish(odometry);
+        LOG_MSG_STAMP("/dji_sdk/odometry", odometry, current_time);
     }
 
     //update rc_channel msg
@@ -133,6 +140,7 @@ void DJISDKNode::broadcast_callback()
         rc_channels.throttle = recv_sdk_std_msgs.rc.throttle;
         rc_channels.yaw = recv_sdk_std_msgs.rc.yaw;
         rc_channels_publisher.publish(rc_channels);
+        LOG_MSG_STAMP("/dji_sdk/rc_channels", rc_channels, current_time);
     }
 
     //update compass msg
@@ -144,6 +152,7 @@ void DJISDKNode::broadcast_callback()
         compass.y = recv_sdk_std_msgs.mag.y;
         compass.z = recv_sdk_std_msgs.mag.z;
         compass_publisher.publish(compass);
+        LOG_MSG_STAMP("/dji_sdk/compass", compass, current_time);
     }
 
 
@@ -153,12 +162,14 @@ void DJISDKNode::broadcast_callback()
         flight_status = recv_sdk_std_msgs.status;
         msg.data = flight_status;
         flight_status_publisher.publish(msg);
+        LOG_MSG_STAMP("/dji_sdk/flight_status", msg, current_time);
     }
 
     //update battery msg
     if ((msg_flags & ENABLE_MSG_BATTERY)) {
         power_status.percentage = recv_sdk_std_msgs.battery_remaining_capacity;
         power_status_publisher.publish(power_status);
+        LOG_MSG_STAMP("/dji_sdk/power_status", power_status, current_time);
     }
 
     //update flight control info
@@ -166,6 +177,7 @@ void DJISDKNode::broadcast_callback()
         flight_control_info.cur_ctrl_dev_in_navi_mode = recv_sdk_std_msgs.ctrl_info.cur_ctrl_dev_in_navi_mode;
         flight_control_info.serial_req_status = recv_sdk_std_msgs.ctrl_info.serial_req_status;
         flight_control_info_publisher.publish(flight_control_info);
+        LOG_MSG_STAMP("/dji_sdk/flight_control_info", flight_control_info, current_time);
     }
 
     //update obtaincontrol msg
@@ -174,11 +186,13 @@ void DJISDKNode::broadcast_callback()
         sdk_permission_opened = recv_sdk_std_msgs.obtained_control;
         msg.data = recv_sdk_std_msgs.obtained_control;
         sdk_permission_publisher.publish(msg);
+        LOG_MSG_STAMP("/dji_sdk/sdk_permission", msg, current_time);
 
         //update activation msg
         activated = recv_sdk_std_msgs.activation;
         msg.data = recv_sdk_std_msgs.activation;
         activation_publisher.publish(msg);
+        LOG_MSG_STAMP("/dji_sdk/activation", msg, current_time);
     }
 }
 
