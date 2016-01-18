@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh_private("~");
 
     // Start bag logger
-    BagLogger::instance()->startLogging("DJI");
+    //    BagLogger::instance()->startLogging("DJI");
 
     DJISDKNode* dji_sdk_node = new DJISDKNode(nh, nh_private);
     
