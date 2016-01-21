@@ -174,9 +174,11 @@ private:
 
     dji_sdk::LocalPosition gps_convert_ned(dji_sdk::GlobalPosition loc);
 
+    double flyout_speed {8};
     double waypoint_speed {4};
     double waypoint_region {5};
     double waypoint_turn_time {0.5};
+    bool telemetry_log {false};
 
     struct WaypointData {
         unsigned int index;

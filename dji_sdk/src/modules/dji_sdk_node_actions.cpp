@@ -170,7 +170,6 @@ void DJISDKNode::log_waypoints() {
 bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
 {
     waypoints.clear();
-    ROS_INFO("WWW: Initializing %u waypoints", wp_list.waypoint_list.size());
     for (int i = 0; i < wp_list.waypoint_list.size(); i++) {
         const dji_sdk::Waypoint wp = wp_list.waypoint_list[i];
         WaypointData wpd;
@@ -180,11 +179,11 @@ bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
         wpd.global_location.altitude = 
             (global_position.altitude - local_position.z) + wp.altitude;
         global_to_local(wpd.local_location, wpd.global_location);
-	wpd.local_location[2] = wp.altitude;
+        wpd.local_location[2] = wp.altitude;
         wpd.loiter = wp.staytime;
         wpd.heading = wp.heading;
         wpd.region = waypoint_region;
-        wpd.speed = waypoint_speed;
+        wpd.speed = i == 0 ? flyout_speed : waypoint_speed;
         waypoints.push_back(wpd);
     }
 
@@ -192,7 +191,7 @@ bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
     for (int i = 0; i < waypoints.size()-1; i++) {
         vector_between_locations(waypoints[i].direction,
                 waypoints[i].global_location , waypoints[i+1].global_location);
-	waypoints[i].direction.normalize();
+        waypoints[i].direction.normalize();
     }
 
     log_waypoints();

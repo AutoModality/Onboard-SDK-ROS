@@ -12,9 +12,6 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
     ros::NodeHandle nh_private("~");
 
-    // Start bag logger
-    //    BagLogger::instance()->startLogging("DJI");
-
     DJISDKNode* dji_sdk_node = new DJISDKNode(nh, nh_private);
     
     ros::AsyncSpinner spinner(4); // Use 4 threads

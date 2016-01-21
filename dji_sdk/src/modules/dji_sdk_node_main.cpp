@@ -29,7 +29,7 @@ void DJISDKNode::broadcast_callback()
         attitude_quaternion.wz = recv_sdk_std_msgs.w.z;
         attitude_quaternion.ts = recv_sdk_std_msgs.time_stamp;
         attitude_quaternion_publisher.publish(attitude_quaternion);
-        LOG_MSG_STAMP("/dji_sdk/attitude_quaternion", attitude_quaternion, current_time);
+        LOG_MSG_STAMP("/dji_sdk/attitude_quaternion", attitude_quaternion, current_time, 2);
     }
 
     //update global_position msg
@@ -43,7 +43,7 @@ void DJISDKNode::broadcast_callback()
         global_position.altitude = recv_sdk_std_msgs.pos.alti;
         global_position.health = recv_sdk_std_msgs.pos.health_flag;
         global_position_publisher.publish(global_position);
-        LOG_MSG_STAMP("/dji_sdk/global_position", global_position, current_time);
+        LOG_MSG_STAMP("/dji_sdk/global_position", global_position, current_time, 1);
 
         //TODO:
         // FIX BUG about flying at lat = 0
@@ -67,7 +67,7 @@ void DJISDKNode::broadcast_callback()
         local_position.ts = global_position.ts;
         local_position_ref = local_position;
         local_position_publisher.publish(local_position);
-        LOG_MSG_STAMP("/dji_sdk/local_position", local_position, current_time);
+        LOG_MSG_STAMP("/dji_sdk/local_position", local_position, current_time, 1);
     }
 
 
@@ -80,7 +80,7 @@ void DJISDKNode::broadcast_callback()
         velocity.vy = recv_sdk_std_msgs.v.y;
         velocity.vz = recv_sdk_std_msgs.v.z;
         velocity_publisher.publish(velocity);
-        LOG_MSG_STAMP("/dji_sdk/velocity", velocity, current_time);
+        LOG_MSG_STAMP("/dji_sdk/velocity", velocity, current_time, 2);
     }
 
     //update acceleration msg
@@ -92,7 +92,7 @@ void DJISDKNode::broadcast_callback()
         acceleration.ay = recv_sdk_std_msgs.a.y;
         acceleration.az = recv_sdk_std_msgs.a.z;
         acceleration_publisher.publish(acceleration);
-        LOG_MSG_STAMP("/dji_sdk/acceleration", acceleration, current_time);
+        LOG_MSG_STAMP("/dji_sdk/acceleration", acceleration, current_time, 2);
     }
 
     //update gimbal msg
@@ -104,7 +104,7 @@ void DJISDKNode::broadcast_callback()
         gimbal.pitch = recv_sdk_std_msgs.gimbal.y;
         gimbal.yaw = recv_sdk_std_msgs.gimbal.z;
         gimbal_publisher.publish(gimbal);
-        LOG_MSG_STAMP("/dji_sdk/gimbal", gimbal, current_time);
+        LOG_MSG_STAMP("/dji_sdk/gimbal", gimbal, current_time, 1);
     }
 
     //update odom msg
@@ -125,7 +125,7 @@ void DJISDKNode::broadcast_callback()
         odometry.twist.twist.linear.y = velocity.vy;
         odometry.twist.twist.linear.z = velocity.vz;
         odometry_publisher.publish(odometry);
-        LOG_MSG_STAMP("/dji_sdk/odometry", odometry, current_time);
+        LOG_MSG_STAMP("/dji_sdk/odometry", odometry, current_time, 1);
     }
 
     //update rc_channel msg
@@ -140,7 +140,7 @@ void DJISDKNode::broadcast_callback()
         rc_channels.throttle = recv_sdk_std_msgs.rc.throttle;
         rc_channels.yaw = recv_sdk_std_msgs.rc.yaw;
         rc_channels_publisher.publish(rc_channels);
-        LOG_MSG_STAMP("/dji_sdk/rc_channels", rc_channels, current_time);
+        LOG_MSG_STAMP("/dji_sdk/rc_channels", rc_channels, current_time, 2);
     }
 
     //update compass msg
@@ -152,7 +152,7 @@ void DJISDKNode::broadcast_callback()
         compass.y = recv_sdk_std_msgs.mag.y;
         compass.z = recv_sdk_std_msgs.mag.z;
         compass_publisher.publish(compass);
-        LOG_MSG_STAMP("/dji_sdk/compass", compass, current_time);
+        LOG_MSG_STAMP("/dji_sdk/compass", compass, current_time, 2);
     }
 
 
@@ -162,14 +162,14 @@ void DJISDKNode::broadcast_callback()
         flight_status = recv_sdk_std_msgs.status;
         msg.data = flight_status;
         flight_status_publisher.publish(msg);
-        LOG_MSG_STAMP("/dji_sdk/flight_status", msg, current_time);
+        LOG_MSG_STAMP("/dji_sdk/flight_status", msg, current_time, 1);
     }
 
     //update battery msg
     if ((msg_flags & ENABLE_MSG_BATTERY)) {
         power_status.percentage = recv_sdk_std_msgs.battery_remaining_capacity;
         power_status_publisher.publish(power_status);
-        LOG_MSG_STAMP("/dji_sdk/power_status", power_status, current_time);
+        LOG_MSG_STAMP("/dji_sdk/power_status", power_status, current_time, 1);
     }
 
     //update flight control info
@@ -177,7 +177,7 @@ void DJISDKNode::broadcast_callback()
         flight_control_info.cur_ctrl_dev_in_navi_mode = recv_sdk_std_msgs.ctrl_info.cur_ctrl_dev_in_navi_mode;
         flight_control_info.serial_req_status = recv_sdk_std_msgs.ctrl_info.serial_req_status;
         flight_control_info_publisher.publish(flight_control_info);
-        LOG_MSG_STAMP("/dji_sdk/flight_control_info", flight_control_info, current_time);
+        LOG_MSG_STAMP("/dji_sdk/flight_control_info", flight_control_info, current_time, 2);
     }
 
     //update obtaincontrol msg
@@ -186,13 +186,13 @@ void DJISDKNode::broadcast_callback()
         sdk_permission_opened = recv_sdk_std_msgs.obtained_control;
         msg.data = recv_sdk_std_msgs.obtained_control;
         sdk_permission_publisher.publish(msg);
-        LOG_MSG_STAMP("/dji_sdk/sdk_permission", msg, current_time);
+        LOG_MSG_STAMP("/dji_sdk/sdk_permission", msg, current_time, 2);
 
         //update activation msg
         activated = recv_sdk_std_msgs.activation;
         msg.data = recv_sdk_std_msgs.activation;
         activation_publisher.publish(msg);
-        LOG_MSG_STAMP("/dji_sdk/activation", msg, current_time);
+        LOG_MSG_STAMP("/dji_sdk/activation", msg, current_time, 2);
     }
 }
 
@@ -231,14 +231,28 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
     nh_private.param("app_bundle_id", app_bundle_id, std::string("12345678901234567890123456789012"));
     nh_private.param("enc_key", enc_key,
             std::string("e7bad64696529559318bb35d0a8c6050d3b88e791e1808cfe8f7802150ee6f0d"));
+    nh_private.param("flyout_speed", flyout_speed, 8.0);
     nh_private.param("waypoint_speed", waypoint_speed, 4.0);
     nh_private.param("waypoint_region", waypoint_region, 5.0);
     nh_private.param("waypoint_turn_time", waypoint_turn_time, 1.5);
+    int log_level {0};
+    nh_private.param("telemetry_log_level", log_level, 0);
     std::string debug_file_name;
     //nh_private.param("debug_file_name", debug_file_name, std::string("/home/ubuntu/wp_test.log"));
     debug_file_name = BagLogger::instance()->getLogFileName("TRAJ");
     if ((debug_file = fopen(debug_file_name.c_str(), "a")) != NULL) {
         fprintf(debug_file, "\n\n################################\n\n");
+    }
+
+    if (log_level > 0)
+    {
+        // Start bag logger
+        ROS_INFO("DJI: Telemetry logger ON level %d", log_level);
+        BagLogger::instance()->startLogging("DJI", log_level);
+    }
+    else
+    {
+        ROS_INFO("DJI: Telemetry logger OFF");
     }
 
     // activation
@@ -255,8 +269,8 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
     printf("app version: 0x0%X\n", user_act_data.app_ver);
     printf("app key: %s\n", user_act_data.app_key);
     printf("=================================================\n");
-    ROS_INFO("DJI: speed: %f, region: %f, turn_time: %f",
-            waypoint_speed, waypoint_region, waypoint_turn_time);
+    ROS_INFO("DJI: speed: %f:%f, region: %f, turn_time: %f",
+            flyout_speed, waypoint_speed, waypoint_region, waypoint_turn_time);
 
     if (DJI_Setup(serial_name.c_str(), baud_rate) < 0) {
         printf("Serial Port Cannot Open\n");

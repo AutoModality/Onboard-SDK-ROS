@@ -11,5 +11,7 @@
 		<param name="waypoint_speed" type="double" value="4.1"/>
 		<param name="waypoint_region" type="double" value="5.2"/>
 		<param name="waypoint_turn_time" type="double" value="1.5"/>
+		<param name="flyout_speed" type="double" value="8.0"/>
+		<param name="telemetry_log_level" type="int" value="1"/>
 	</node>
 </launch>

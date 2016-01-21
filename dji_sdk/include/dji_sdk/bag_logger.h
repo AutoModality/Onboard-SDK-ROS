@@ -17,14 +17,16 @@
 
 #define DEFAULT_BAG_DIR "/home/ubuntu/testdata/"
 
-#define LOG_MSG(topic, msg) { if (BagLogger::instance()->isLogging()) { \
-            BagLogger::instance()->bag.write((topic), ros::Time::now(), (msg)); } }
+#define LOG_MSG(topic, msg, level) { LOG_MSG_STAMP(topic, msg, ros::Time::now(), level) }
 
-#define LOG_MSG_STAMP(topic, msg, t) { if (BagLogger::instance()->isLogging()) { \
-            BagLogger::instance()->bag.write((topic), (t), (msg)); } }
+#define LOG_MSG_STAMP(topic, msg, t, level) { if (BagLogger::instance()->isLogging() && \
+                                                 (level) <= BagLogger::instance()->getLogLevel()) { \
+    BagLogger::instance()->bag.write((topic), (t), (msg)); } }
 
 class BagLogger {
     static BagLogger *s_instance_;
+
+    unsigned log_level_ {0};
 
     bool is_logging_ {false};
 
@@ -47,8 +49,6 @@ public:
         return s_instance_;
     }
 
-    bool isLogging() { return is_logging_; }
-
     std::string getLogFileName(std::string prefix) {
         log_name_prefix_ = prefix;
         time_t rawtime;
@@ -61,33 +61,47 @@ public:
         std::string format_str = DEFAULT_BAG_DIR+prefix+"-%Y-%m-%d-%H-%M-%S.bag";
 
         strftime(buffer, 80, format_str.c_str(), timeinfo);
-//        strftime(buffer,80,"/home/ubuntu/testdata/%Y-%m-%d-%H-%M-%S.bag",timeinfo);
         std::string str(buffer);
 
         return str;
     }
 
-    void startLogging(std::string prefix) {
-        if (is_logging_)
+    void startLogging(std::string prefix, unsigned log_level) {
+        if (log_level_ > 0)
         {
             ROS_INFO("Closing bag file %s", file_name_.c_str());
             bag.close();
+            log_level_ = 0;
+            is_logging_ = false;
         }
-        file_name_ = getLogFileName(prefix);
-        bag.open(file_name_, rosbag::bagmode::Write);
-        ROS_INFO("Opening bag file %s", file_name_.c_str());
-        is_logging_ = true;
+
+        if (log_level > 0)
+        {
+            file_name_ = getLogFileName(prefix);
+            bag.open(file_name_, rosbag::bagmode::Write);
+            ROS_INFO("Opening bag file %s", file_name_.c_str());
+            log_level_ = log_level;
+            is_logging_ = true;
+        }
     }
 
     void stopLogging() {
-        if (is_logging_)
+        if (log_level_ > 0)
         {
             ROS_INFO("Closing bag file %s", file_name_.c_str());
             bag.close();
+            log_level_ = 0;
+            is_logging_ = false;
         }
-        is_logging_ = false;
         return;
-    };
+    }
+    unsigned getLogLevel() const {
+        return log_level_;
+    }
+
+    bool isLogging() const {
+        return is_logging_;
+    }
 };
 
 #endif /* BAG_LOGGER_H_ */
