@@ -117,7 +117,8 @@ inline void DJISDKNode::global_to_local(Eigen::Vector3d& local, dji_sdk::GlobalP
     local[0] = (DEG2RAD(d_lat) * C_EARTH) + local_position.x;
     local[1] = (DEG2RAD(d_lon) * C_EARTH *
             cos(DEG2RAD(global.latitude))) + local_position.y;
-    local[2] = d_alt + local_position.z;
+    //    local[2] = d_alt + local_position.z;
+    local[2] = d_alt;
 
     return;
 }
@@ -176,8 +177,10 @@ bool DJISDKNode::init_waypoints(const dji_sdk::WaypointList& wp_list)
         wpd.index = i;
         wpd.global_location.latitude = wp.latitude;
         wpd.global_location.longitude = wp.longitude;
-        wpd.global_location.altitude = global_position.altitude + wp.altitude;
+        wpd.global_location.altitude = 
+            (global_position.altitude - local_position.z) + wp.altitude;
         global_to_local(wpd.local_location, wpd.global_location);
+	wpd.local_location[2] = wp.altitude;
         wpd.loiter = wp.staytime;
         wpd.heading = wp.heading;
         wpd.region = waypoint_region;
