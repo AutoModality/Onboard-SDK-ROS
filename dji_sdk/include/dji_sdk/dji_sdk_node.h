@@ -232,7 +232,7 @@ private:
     void send_velocity_setpoint(Eigen::Vector3d direction, double speed, int yaw);
     bool init_waypoints(const dji_sdk::WaypointList& wp_list);
     bool fly_waypoints();
-    bool fly_to_waypoint(WaypointData& wp);
+    bool fly_to_waypoint(WaypointData& wp, bool ramp_speed);
     bool turn_at_waypoint(WaypointData& wp, WaypointData& wpn);
     bool loiter_at_waypoint(WaypointData& wp);
     double turn_duration(WaypointData& wp);
