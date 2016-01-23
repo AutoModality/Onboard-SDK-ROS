@@ -57,6 +57,7 @@ private:
     ros::Publisher activation_publisher;
     ros::Publisher odometry_publisher;
     ros::Publisher sdk_permission_publisher;
+    ros::Subscriber log_control_subscriber;
 
     void init_publishers(ros::NodeHandle& nh)
     {
@@ -75,6 +76,8 @@ private:
         activation_publisher = nh.advertise<std_msgs::UInt8>("dji_sdk/activation", 10);
         odometry_publisher = nh.advertise<nav_msgs::Odometry>("dji_sdk/odometry",10);
         sdk_permission_publisher = nh.advertise<std_msgs::UInt8>("dji_sdk/sdk_permission", 10);
+        log_control_subscriber = nh.subscribe<dji_sdk::LogControl>(
+                "/dji_sdk/log_control", 10, &DJISDKNode::logControlCB, this);
     }
 
 //Services:
@@ -197,6 +200,7 @@ private:
 
     WaypointData *current_waypoint;
 
+    int log_level {0};
     FILE *debug_file {NULL};
     void debug_log(const char* format, ...) {
         va_list args;
@@ -208,6 +212,7 @@ private:
         va_end( args );
 //        fprintf( stderr, "\n" );
     }
+    void logControlCB(const dji_sdk::LogControl::ConstPtr& msg);
 
     inline void vector_to_waypoint(Eigen::Vector3d& vector, WaypointData& wp);
     inline void vector_between_locations(Eigen::Vector3d& vector,

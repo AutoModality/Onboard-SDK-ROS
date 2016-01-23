@@ -235,7 +235,6 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
     nh_private.param("waypoint_speed", waypoint_speed, 4.0);
     nh_private.param("waypoint_region", waypoint_region, 5.0);
     nh_private.param("waypoint_turn_time", waypoint_turn_time, 1.5);
-    int log_level {0};
     nh_private.param("telemetry_log_level", log_level, 0);
     std::string debug_file_name;
     //nh_private.param("debug_file_name", debug_file_name, std::string("/home/ubuntu/wp_test.log"));
@@ -244,16 +243,16 @@ int DJISDKNode::init_parameters_and_activate(ros::NodeHandle& nh_private)
         fprintf(debug_file, "\n\n################################\n\n");
     }
 
-    if (log_level > 0)
-    {
-        // Start bag logger
-        ROS_INFO("DJI: Telemetry logger ON level %d", log_level);
-        BagLogger::instance()->startLogging("DJI", log_level);
-    }
-    else
-    {
-        ROS_INFO("DJI: Telemetry logger OFF");
-    }
+//    if (log_level > 0)
+//    {
+//        // Start bag logger
+//        ROS_INFO("DJI: Telemetry logger ON level %d", log_level);
+//        BagLogger::instance()->startLogging("DJI", log_level);
+//    }
+//    else
+//    {
+//        ROS_INFO("DJI: Telemetry logger OFF");
+//    }
 
     // activation
     user_act_data.app_id = app_id;
@@ -311,3 +310,16 @@ dji_sdk::LocalPosition DJISDKNode::gps_convert_ned(dji_sdk::GlobalPosition loc)
     local.z = loc.height;
     return local;
 }
+
+void DJISDKNode::logControlCB(const dji_sdk::LogControl::ConstPtr& msg)
+{
+    if (msg->enable)
+    {
+        BagLogger::instance()->startLogging(msg->name, msg->level);
+    }
+    else
+    {
+        BagLogger::instance()->stopLogging();
+    }
+}
+

@@ -60,6 +60,7 @@ add_message_files(
   Gimbal.msg
   GlobalPosition.msg
   LocalPosition.msg
+  LogControl.msg
   PowerStatus.msg
   RCChannels.msg
   Velocity.msg

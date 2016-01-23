@@ -331,7 +331,7 @@ public:
 		return local_position_navigation_action_client.isServerConnected();
 	}
 
-	void local_position_navigation_send_request(float x, float y, float z, 
+	void local_position_navigation_send_request(float x, float y, float z, int heading,
 		LocalPositionNavigationActionClient::SimpleDoneCallback done_callback = LocalPositionNavigationActionClient::SimpleDoneCallback(), 
 		LocalPositionNavigationActionClient::SimpleActiveCallback active_callback = LocalPositionNavigationActionClient::SimpleActiveCallback(), 
 		LocalPositionNavigationActionClient::SimpleFeedbackCallback feedback_callback = LocalPositionNavigationActionClient::SimpleFeedbackCallback())
@@ -339,7 +339,8 @@ public:
 		dji_sdk::LocalPositionNavigationGoal local_position_navigation_goal;
 		local_position_navigation_goal.x = x;
 		local_position_navigation_goal.y = y;
-		local_position_navigation_goal.z = z;
+        local_position_navigation_goal.z = z;
+        local_position_navigation_goal.heading = heading;
 		local_position_navigation_action_client.sendGoal(local_position_navigation_goal, done_callback, active_callback, feedback_callback);
 	}
 

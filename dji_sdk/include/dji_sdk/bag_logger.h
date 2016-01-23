@@ -67,7 +67,7 @@ public:
     }
 
     void startLogging(std::string prefix, unsigned log_level) {
-        if (log_level_ > 0)
+        if (is_logging_)
         {
             ROS_INFO("Closing bag file %s", file_name_.c_str());
             bag.close();
@@ -86,7 +86,7 @@ public:
     }
 
     void stopLogging() {
-        if (log_level_ > 0)
+        if (is_logging_)
         {
             ROS_INFO("Closing bag file %s", file_name_.c_str());
             bag.close();

@@ -283,7 +283,7 @@ int main(int argc, char **argv)
                 break;
             case 'm':
                 /* Local Navi Test */
-                drone->local_position_navigation_send_request(-100, -100, 100);
+                drone->local_position_navigation_send_request(-100, -100, 100, 0);
                 break;
             case 'n':
                 /* GPS Navi Test */

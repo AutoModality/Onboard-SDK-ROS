@@ -377,7 +377,8 @@ bool DJISDKNode::local_position_navigation_action_callback(const dji_sdk::LocalP
   attitude_data_t user_ctrl_data;
   user_ctrl_data.ctrl_flag = 0x90;
   user_ctrl_data.thr_z = dst_z;
-  user_ctrl_data.yaw = 0;
+//  user_ctrl_data.yaw = 0;
+  user_ctrl_data.yaw = goal->heading;
 
   int x_progress = 0; 
   int y_progress = 0; 
@@ -398,9 +399,9 @@ bool DJISDKNode::local_position_navigation_action_callback(const dji_sdk::LocalP
      z_progress = 100 - (int)det_z;
 
      //lazy evaluation
-     if (std::abs(dst_x - local_position.x) < 0.1) x_progress = 100;
-     if (std::abs(dst_y - local_position.y) < 0.1) y_progress = 100;
-     if (std::abs(dst_z - local_position.z) < 0.1) z_progress = 100;
+     if (std::abs(dst_x - local_position.x) < 0.3) x_progress = 100;
+     if (std::abs(dst_y - local_position.y) < 0.3) y_progress = 100;
+     if (std::abs(dst_z - local_position.z) < 0.3) z_progress = 100;
 
      local_position_navigation_feedback.x_progress = x_progress;
      local_position_navigation_feedback.y_progress = y_progress;
@@ -439,7 +440,8 @@ bool DJISDKNode::global_position_navigation_action_callback(const dji_sdk::Globa
     attitude_data_t user_ctrl_data;
     user_ctrl_data.ctrl_flag = 0x90;
     user_ctrl_data.thr_z = dst_altitude;
-    user_ctrl_data.yaw = 0;
+//    user_ctrl_data.yaw = 0;
+    user_ctrl_data.yaw = goal->heading;
 
     int latitude_progress = 0; 
     int longitude_progress = 0; 
