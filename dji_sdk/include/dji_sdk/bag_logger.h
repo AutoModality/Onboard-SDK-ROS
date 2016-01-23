@@ -88,10 +88,10 @@ public:
     void stopLogging() {
         if (is_logging_)
         {
-            ROS_INFO("Closing bag file %s", file_name_.c_str());
-            bag.close();
             log_level_ = 0;
             is_logging_ = false;
+            ROS_INFO("Closing bag file %s", file_name_.c_str());
+            bag.close();
         }
         return;
     }
