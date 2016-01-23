@@ -259,6 +259,10 @@ bool DJISDKNode::fly_to_waypoint(WaypointData& wp, bool ramp_speed) {
 
         cur_vec.normalize();
         speed_setpoint += delta_speed;
+	if (speed_setpoint > wp.speed)
+	{
+             speed_setpoint = wp.speed;
+        } 
         debug_log(" X:%f  Y:%f  Z:%f  H:%d, S:%f0.4\n",
                 cur_vec[0], cur_vec[1], cur_vec[2], wp.heading, speed_setpoint);
         send_velocity_setpoint(cur_vec, speed_setpoint, wp.heading);
