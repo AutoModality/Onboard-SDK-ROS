@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <string.h>
+#include <iostream>
+#include <boost/filesystem.hpp>
 
 #include <ros/ros.h>
 #include <rosbag/bag.h>
@@ -49,6 +51,28 @@ public:
         return s_instance_;
     }
 
+    bool isLogging() { return is_logging_; }
+
+    std::string getLogFileDir() {
+        using namespace std;
+        using namespace boost::filesystem;
+
+        path p("/media/ubuntu");
+        for (auto i = directory_iterator(p); i != directory_iterator(); i++)
+        {
+            if (is_directory(i->path())) // find the first directory
+            {
+//                cout << "FOUND: "+i->path().filename().string()+"  AT: "+i->path().string() << endl;
+                return i->path().string()+"/";
+            }
+            else
+                continue;
+        }
+        ROS_INFO("LG: NO SD CARD FOUND");
+
+        return string(DEFAULT_BAG_DIR);
+    }
+
     std::string getLogFileName(std::string prefix) {
         log_name_prefix_ = prefix;
         time_t rawtime;
@@ -58,7 +82,9 @@ public:
         time (&rawtime);
         timeinfo = localtime(&rawtime);
 
-        std::string format_str = DEFAULT_BAG_DIR+prefix+"-%Y-%m-%d-%H-%M-%S.bag";
+        std::string dir_str = getLogFileDir();
+
+        std::string format_str = dir_str+prefix+"-%Y-%m-%d-%H-%M-%S.bag";
 
         strftime(buffer, 80, format_str.c_str(), timeinfo);
         std::string str(buffer);
@@ -69,7 +95,7 @@ public:
     void startLogging(std::string prefix, unsigned log_level) {
         if (is_logging_)
         {
-            ROS_INFO("Closing bag file %s", file_name_.c_str());
+            ROS_INFO("LG: Closing bag file %s", file_name_.c_str());
             bag.close();
             log_level_ = 0;
             is_logging_ = false;
@@ -90,7 +116,7 @@ public:
         {
             log_level_ = 0;
             is_logging_ = false;
-            ROS_INFO("Closing bag file %s", file_name_.c_str());
+            ROS_INFO("LG: Closing bag file %s", file_name_.c_str());
             bag.close();
         }
         return;
