@@ -233,7 +233,7 @@ private:
                                  dji_osdk_ros::SetupCameraStream::Response& response);
   void publishCameraInfo(const std_msgs::Header &header);
   
-  void publishRectifiedImage(ros::Publisher &pub, sensor_msgs::Image &img, const sensor_msgs::CameraInfo &camera_info);
+  void publishRectifiedImage(ros::Publisher &pub, sensor_msgs::Image &img, const sensor_msgs::CameraInfo &camera_info, bool reset);
 
   sensor_msgs::CameraInfo getCameraInfo(int camera_select, bool isLeftRequired);
 

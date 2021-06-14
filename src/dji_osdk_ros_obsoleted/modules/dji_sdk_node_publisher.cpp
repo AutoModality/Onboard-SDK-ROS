@@ -801,8 +801,8 @@ sensor_msgs::CameraInfo DJISDKNode::getCameraInfo(int camera_select, bool isLeft
 {
 	sensor_msgs::CameraInfo cam_info;
 	
-	cam_info.width = 320;
-	cam_info.height = 240;
+	cam_info.width = 640;
+	cam_info.height = 480;
 	
 	cam_info.distortion_model = "plumb_bob";
 	
@@ -813,10 +813,20 @@ sensor_msgs::CameraInfo DJISDKNode::getCameraInfo(int camera_select, bool isLeft
 		//front camera
 		case 1:
 		{
-			cam_info.K = {407.1327819824219, 0, 321.8077392578125, 0.0, 407.1327819824219, 236.9904937744141, 0.0, 0.0, 1.0};
+			if(isLeftRequired)
+			{
+				cam_info.K = {495.369561, 0.0, 324.491529, 0.0, 494.250553, 237.770364, 0.0, 0.0, 1.0};
+				cam_info.D = {0.004714, -0.004977, 0.000117, 0.002094, 0.0};
+				cam_info.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+				cam_info.P = {496.032593, 0.0, 325.909943, 0.0, 0.0, 496.050415, 237.832622, 0.0, 0.0, 0.0, 1.0, 0.0};
+				break;
+			}
+			cam_info.K = {481.270691, 0.0, 321.036310, 0.0, 482.335166, 241.124163, 0.0, 0.0, 1.0};
+			cam_info.D = {0.001860, -0.008495, -0.000167, 0.000129, 0.0};
 			cam_info.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-			cam_info.P = {407.1327819824219, 0, 321.8077392578125, -116.0410842895508, 0.0, 407.1327819824219, 236.9904937744141, 0.0, 0.0, 0.0, 1.0, 0.0};
+			cam_info.P = {480.864746, 0.0, 321.124606, 0.0, 0.0, 482.306824, 241.065530, 0.0, 0.0, 0.0, 1.0, 0.0};
 			break;
+			
 		}
 		//left camera
 		case 2:
@@ -957,8 +967,21 @@ void DJISDKNode::publishVGAStereoImage(Vehicle*            vehicle,
                                        RecvContainer       recvFrame,
                                        DJI::OSDK::UserData userData)
 {
+	
+	static int previous_camera_select = -1;
+	
+	bool reset = false;
+	
+	
+	
 	DJISDKNode *node_ptr = (DJISDKNode *)userData;
-
+	if(previous_camera_select != node_ptr->latest_camera_ || previous_camera_select == -1)
+	{
+		reset = true;
+		previous_camera_select = node_ptr->latest_camera_;
+	}
+	
+	
 	node_ptr->stereo_vga_subscription_success = true;
 	sensor_msgs::Image img;
 	img.height = 480;
@@ -973,8 +996,8 @@ void DJISDKNode::publishVGAStereoImage(Vehicle*            vehicle,
 	img.header.stamp = ros::Time::now(); // @todo
 	img.header.frame_id = "vga_left";
 	node_ptr->stereo_vga_front_left_publisher.publish(img);
-	sensor_msgs::CameraInfo left_camera_info = getCameraInfo(latest_camera_, true);
-	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_left_rect_publisher, img, left_camera_info);
+	sensor_msgs::CameraInfo left_camera_info = node_ptr->getCameraInfo(node_ptr->latest_camera_, true);
+	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_left_rect_publisher, img, left_camera_info, reset);
 
 	//processing right camera stream
 	img.height = 480;
@@ -985,8 +1008,8 @@ void DJISDKNode::publishVGAStereoImage(Vehicle*            vehicle,
 	memcpy((char*)(&img.data[0]), recvFrame.recvData.stereoVGAImgData->img_vec[1], 480*640);
 	img.header.frame_id = "vga_right";
 	node_ptr->stereo_vga_front_right_publisher.publish(img);
-	sensor_msgs::CameraInfo right_camera_info = getCameraInfo(latest_camera_, false);
-	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_right_rect_publisher, img, right_camera_info);
+	sensor_msgs::CameraInfo right_camera_info = node_ptr->getCameraInfo(node_ptr->latest_camera_, false);
+	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_right_rect_publisher, img, right_camera_info, reset);
 
 
 	node_ptr->publishCameraInfo(img.header);
@@ -1001,37 +1024,62 @@ void DJISDKNode::toCV(const sensor_msgs::CameraInfo &cam_info, cv::Mat &cam_mat,
 	{
 		for (size_t j = 0; j < 3; j++)
 		{
-			cam_mat.at<double>(i, j) = cam_info->K[i * 3 + j];
+			cam_mat.at<double>(i, j) = cam_info.K[i * 3 + j];
 		}
 	}
 
 	// Store camera distortion info
 	for(size_t i = 0; i < 5; i++)
 	{
-		distortion_mat.at<double>(i, 0) = cam_info->D[i];
+		distortion_mat.at<double>(i, 0) = cam_info.D[i];
 	}
 }
 
-void DJISDKNode::publishRectifiedImage(ros::Publisher &pub, sensor_msgs::Image &img, const sensor_msgs::CameraInfo &camera_info, int reset)
+void DJISDKNode::publishRectifiedImage(ros::Publisher &pub, sensor_msgs::Image &ros_img, const sensor_msgs::CameraInfo &camera_info, bool reset)
 {
-
+	
+	if(pub.getNumSubscribers() == 0)
+	{
+		return ;
+	}
+	
 	static cv::Mat map1, map2;
 
-	if(reset)
+	//if(reset)
 	{
 		cv::Mat camera_matrix;
 		cv::Mat distortion_coeffs;
 
 		toCV(camera_info, camera_matrix, distortion_coeffs);
-
-		cv::initUndistortRectifyMap(camera_matrix, distortion_coeffs, cv::Mat(), camera_matrix, cv::Size(camera_info.width, camera_info.height), CV_32FC1, map1, map2);
+			
+		/*std::cout << "Camera Matrix" << std::endl;
+		for (size_t i = 0; i < 3; i++)
+		{
+			for (size_t j = 0; j < 3; j++)
+			{
+				std::cout << camera_matrix.at<double>(i, j) << " ";
+			}
+			std::cout << std::endl;
+		}
+		
+		std::cout << "Distortion Matrix" << std::endl;
+		for (size_t i = 0; i < 5; i++)
+		{
+			std::cout << distortion_coeffs.at<double>(i, 0) << " ";
+		}
+		
+		std::cout << std::endl;*/
+		
+		cv::initUndistortRectifyMap(camera_matrix, distortion_coeffs, cv::Mat(), camera_matrix, cv::Size(640, 480), CV_8UC1, map1, map2);
+		
+		//ROS_INFO("new map1 and map2 is obtained for undistortion");
 	}
 
 	cv_bridge::CvImagePtr cv_ptr;
 
 	try
 	{
-		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
+		cv_ptr = cv_bridge::toCvCopy(ros_img, sensor_msgs::image_encodings::MONO8);
 	}
 	catch(cv_bridge::Exception &e)
 	{
@@ -1039,9 +1087,17 @@ void DJISDKNode::publishRectifiedImage(ros::Publisher &pub, sensor_msgs::Image &
 		return;
 	}
 
-	cv::Mat img;
+	cv::Mat cv_img;
 
-	remap(msg->image, img, map1, map2, cv::INTER_CUBIC);
+	remap(cv_ptr->image, cv_img, map1, map2, cv::INTER_CUBIC);
+	
+	cv_bridge::CvImage out_msg;
+	out_msg.header   = ros_img.header; // Same timestamp and tf frame as input image
+	out_msg.encoding = sensor_msgs::image_encodings::MONO8; // Or whatever
+	out_msg.image    = cv_img; // Your cv::Mat
+	
+	pub.publish(out_msg.toImageMsg());
+	
 }
 
 
