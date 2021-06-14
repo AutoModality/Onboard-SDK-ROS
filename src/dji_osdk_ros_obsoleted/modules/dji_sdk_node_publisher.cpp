@@ -957,47 +957,93 @@ void DJISDKNode::publishVGAStereoImage(Vehicle*            vehicle,
                                        RecvContainer       recvFrame,
                                        DJI::OSDK::UserData userData)
 {
-  DJISDKNode *node_ptr = (DJISDKNode *)userData;
+	DJISDKNode *node_ptr = (DJISDKNode *)userData;
 
-  node_ptr->stereo_vga_subscription_success = true;
-  sensor_msgs::Image img;
-  img.height = 480;
-  img.width = 640;
-  img.step = 640;
-  img.encoding = "mono8";
-  img.data.resize(img.height*img.width);
-	memcpy((char*)(&img.data[0]), recvFrame.recvData.stereoVGAImgData->img_vec[0], 480*640);
-	//processRosImage(img, node_ptr->latest_camera_);
-  img.header.seq = recvFrame.recvData.stereoVGAImgData->frame_index;
-  img.header.stamp = ros::Time::now(); // @todo
-  img.header.frame_id = "vga_left";
-	node_ptr->stereo_vga_front_left_publisher.publish(img);
-	
-	
-	
+	node_ptr->stereo_vga_subscription_success = true;
+	sensor_msgs::Image img;
 	img.height = 480;
-  img.width = 640;
-  img.step = 640;
-  img.encoding = "mono8";
-  img.data.resize(img.height*img.width);
+	img.width = 640;
+	img.step = 640;
+	img.encoding = "mono8";
+	img.data.resize(img.height*img.width);
+	memcpy((char*)(&img.data[0]), recvFrame.recvData.stereoVGAImgData->img_vec[0], 480*640);
+
+	//processing left camera stream
+	img.header.seq = recvFrame.recvData.stereoVGAImgData->frame_index;
+	img.header.stamp = ros::Time::now(); // @todo
+	img.header.frame_id = "vga_left";
+	node_ptr->stereo_vga_front_left_publisher.publish(img);
+	sensor_msgs::CameraInfo left_camera_info = getCameraInfo(latest_camera_, true);
+	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_left_rect_publisher, img, left_camera_info);
+
+	//processing right camera stream
+	img.height = 480;
+	img.width = 640;
+	img.step = 640;
+	img.encoding = "mono8";
+	img.data.resize(img.height*img.width);
 	memcpy((char*)(&img.data[0]), recvFrame.recvData.stereoVGAImgData->img_vec[1], 480*640);
-	//processRosImage(img, node_ptr->latest_camera_);
-  img.header.frame_id = "vga_right";
+	img.header.frame_id = "vga_right";
 	node_ptr->stereo_vga_front_right_publisher.publish(img);
-	
- 
-  //img.header.frame_id = "vga_right";
-	//unsigned char * img_data_ptr2 = (unsigned char*) &recvFrame.recvData.stereoVGAImgData->img_vec[1];
-  //cv::Mat mat2(img.height, img.width, CV_8U, img_data_ptr, img.step);
-  //perform operations on the cv image
- // cv::resize(mat2, mat2, cv::Size(240, 320),0,0,cv::INTER_LINEAR);
-  //memcpy((char*)(&img.data[0]), recvFrame.recvData.stereoVGAImgData->img_vec[1], 480*640);
-  //img_bridge = cv_bridge::CvImage(img.header, sensor_msgs::image_encodings::MONO8, mat2);
-	//img_bridge.toImageMsg(img);
-  //node_ptr->stereo_vga_front_right_publisher.publish(img);
-  
-  node_ptr->publishCameraInfo(img.header);
+	sensor_msgs::CameraInfo right_camera_info = getCameraInfo(latest_camera_, false);
+	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_right_rect_publisher, img, right_camera_info);
+
+
+	node_ptr->publishCameraInfo(img.header);
 }
+
+void DJISDKNode::toCV(const sensor_msgs::CameraInfo &cam_info, cv::Mat &cam_mat, cv::Mat &distortion_mat)
+{
+	cam_mat = cv::Mat::eye(3, 3, CV_64F);
+	distortion_mat = cv::Mat::zeros(5, 1, CV_64F);
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		for (size_t j = 0; j < 3; j++)
+		{
+			cam_mat.at<double>(i, j) = cam_info->K[i * 3 + j];
+		}
+	}
+
+	// Store camera distortion info
+	for(size_t i = 0; i < 5; i++)
+	{
+		distortion_mat.at<double>(i, 0) = cam_info->D[i];
+	}
+}
+
+void DJISDKNode::publishRectifiedImage(ros::Publisher &pub, sensor_msgs::Image &img, const sensor_msgs::CameraInfo &camera_info, int reset)
+{
+
+	static cv::Mat map1, map2;
+
+	if(reset)
+	{
+		cv::Mat camera_matrix;
+		cv::Mat distortion_coeffs;
+
+		toCV(camera_info, camera_matrix, distortion_coeffs);
+
+		cv::initUndistortRectifyMap(camera_matrix, distortion_coeffs, cv::Mat(), camera_matrix, cv::Size(camera_info.width, camera_info.height), CV_32FC1, map1, map2);
+	}
+
+	cv_bridge::CvImagePtr cv_ptr;
+
+	try
+	{
+		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
+	}
+	catch(cv_bridge::Exception &e)
+	{
+		ROS_INFO_THROTTLE(1.0, "CV_BRIDGE EXCEPTION: %s", e.what());
+		return;
+	}
+
+	cv::Mat img;
+
+	remap(msg->image, img, map1, map2, cv::INTER_CUBIC);
+}
+
 
 void DJISDKNode::processRosImage(sensor_msgs::Image &img, int camera_select)
 {

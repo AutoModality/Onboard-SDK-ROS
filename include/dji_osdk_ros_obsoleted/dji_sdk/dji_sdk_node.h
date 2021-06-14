@@ -233,7 +233,11 @@ private:
                                  dji_osdk_ros::SetupCameraStream::Response& response);
   void publishCameraInfo(const std_msgs::Header &header);
   
+  void publishRectifiedImage(ros::Publisher &pub, sensor_msgs::Image &img, const sensor_msgs::CameraInfo &camera_info);
+
   sensor_msgs::CameraInfo getCameraInfo(int camera_select, bool isLeftRequired);
+
+  void toCV(const sensor_msgs::CameraInfo &cam_info, cv::Mat &cam_mat, cv::Mat &distortion_mat);
 #endif
 
   //! data broadcast callback
@@ -413,6 +417,8 @@ private:
   ros::Publisher stereo_240p_front_depth_publisher;
   ros::Publisher stereo_vga_front_left_publisher;
   ros::Publisher stereo_vga_front_right_publisher;
+  ros::Publisher stereo_vga_front_left_rect_publisher;
+  ros::Publisher stereo_vga_front_right_rect_publisher;
   ros::Publisher main_camera_stream_publisher;
   ros::Publisher fpv_camera_stream_publisher;
 #endif

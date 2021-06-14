@@ -328,7 +328,13 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
 
   stereo_vga_front_left_publisher =
     nh.advertise<sensor_msgs::Image>("dji_osdk_ros/stereo_vga/left/image_raw", 10);
-    
+
+  stereo_vga_front_left_rect_publisher =
+	nh.advertise<sensor_msgs::Image>("dji_osdk_ros/stereo_vga/left/image_rect", 10);
+
+  stereo_vga_front_right_rect_publisher =
+  	nh.advertise<sensor_msgs::Image>("dji_osdk_ros/stereo_vga/right/image_rect", 10);
+
   left_camera_info_pub_ = 
   	nh.advertise<sensor_msgs::CameraInfo>("/dji_osdk_ros/stereo_vga/left/camera_info",10);
 
