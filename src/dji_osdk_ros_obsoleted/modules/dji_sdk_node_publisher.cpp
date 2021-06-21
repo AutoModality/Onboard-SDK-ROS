@@ -808,6 +808,7 @@ sensor_msgs::CameraInfo DJISDKNode::getCameraInfo(int camera_select, bool isLeft
 	
 	cam_info.D = std::vector<double>(5,0.0);
 	
+	//The camera streams from the onboard sdk are already rectified
 	switch(camera_select)
 	{
 		//front camera
@@ -815,14 +816,14 @@ sensor_msgs::CameraInfo DJISDKNode::getCameraInfo(int camera_select, bool isLeft
 		{
 			if(isLeftRequired)
 			{
-				cam_info.K = {495.369561, 0.0, 324.491529, 0.0, 494.250553, 237.770364, 0.0, 0.0, 1.0};
-				cam_info.D = {0.004714, -0.004977, 0.000117, 0.002094, 0.0};
+				cam_info.K = {493.539762, 0.0, 321.578571, 0.0, 491.574128, 239.178689, 0.0, 0.0, 1.0};
+				//cam_info.D = {0.008467, 0.001925, 0.000312, 0.000402, 0.000000};
 				cam_info.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-				cam_info.P = {496.032593, 0.0, 325.909943, 0.0, 0.0, 496.050415, 237.832622, 0.0, 0.0, 0.0, 1.0, 0.0};
+				cam_info.P = {496.811279, 0.0, 321.855119, 0.0, 0.0, 494.909698, 239.352441, 0.0, 0.0, 0.0, 1.0, 0.0};
 				break;
 			}
 			cam_info.K = {481.270691, 0.0, 321.036310, 0.0, 482.335166, 241.124163, 0.0, 0.0, 1.0};
-			cam_info.D = {0.001860, -0.008495, -0.000167, 0.000129, 0.0};
+			//cam_info.D = {0.001860, -0.008495, -0.000167, 0.000129, 0.0};
 			cam_info.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 			cam_info.P = {480.864746, 0.0, 321.124606, 0.0, 0.0, 482.306824, 241.065530, 0.0, 0.0, 0.0, 1.0, 0.0};
 			break;
@@ -834,14 +835,14 @@ sensor_msgs::CameraInfo DJISDKNode::getCameraInfo(int camera_select, bool isLeft
 			if(isLeftRequired)
 			{
 				cam_info.K = {405.863209, 0.000000, 321.034642,0.000000, 406.405344, 234.984922,0.000000, 0.000000, 1.000000};
-				cam_info.D = {-0.004661, 0.003370, 0.000506, 0.000643, 0.000000};
+				//cam_info.D = {-0.004661, 0.003370, 0.000506, 0.000643, 0.000000};
 				cam_info.R = {0.999999, 0.000188, 0.001306,-0.000189, 1.000000, 0.000714,-0.001306, -0.000715, 0.999999};
 				cam_info.P = {406.427434, 0.000000, 320.900703, 0.000000,0.000000, 406.427434, 234.718628, 0.000000,0.000000, 0.000000, 1.000000, 0.000000};
 				break;
 			}
 			
 				cam_info.K = {405.958187, 0.000000, 322.083430,0.000000, 406.341539, 234.588475, 0.000000, 0.000000, 1.000000};
-				cam_info.D = {-0.005493, 0.003726, -0.000700, 0.000489, 0.000000};
+				//cam_info.D = {-0.005493, 0.003726, -0.000700, 0.000489, 0.000000};
 				cam_info.R = {0.999997, 0.000116, 0.002235,-0.000115, 1.000000, -0.000715,-0.002235, 0.000714, 0.999997};
 				cam_info.P = {406.427434, 0.000000, 320.900703, -48.321484,0.000000, 406.427434, 234.718628, 0.000000,0.000000, 0.000000, 1.000000, 0.000000};
 			break;
@@ -879,14 +880,14 @@ sensor_msgs::CameraInfo DJISDKNode::getCameraInfo(int camera_select, bool isLeft
 			if(isLeftRequired)
 			{
 				cam_info.K = {201.990533, 0.000000, 118.106840,0.000000, 202.493255, 158.157213, 0.000000, 0.000000, 1.000000};
-				cam_info.D = {0.001765, -0.002758, -0.000692, -0.001906, 0.000000};
+				//cam_info.D = {0.001765, -0.002758, -0.000692, -0.001906, 0.000000};
 				cam_info.R = {0.999994, -0.001909, -0.002898,0.001904, 0.999997, -0.001712,0.002901, 0.001707, 0.999994};
 				cam_info.P = {204.589978, 0.000000, 118.121675, 0.000000,0.000000, 204.589978, 158.783770, 0.000000,0.000000, 0.000000, 1.000000, 0.000000};
 				break;
 			}
 			
 				cam_info.K = {202.192738, 0.000000, 118.737948,0.000000, 202.403765, 159.274456, 0.000000, 0.000000, 1.000000};
-				cam_info.D = {0.003813, 0.001792, 0.001038, -0.000216, 0.000000};
+				//cam_info.D = {0.003813, 0.001792, 0.001038, -0.000216, 0.000000};
 				cam_info.R = {0.999995, -0.001825, 0.002471,0.001820, 0.999997, 0.001712,-0.002474, -0.001707, 0.999995};
 				cam_info.P = {204.589978, 0.000000, 118.121675, 20.188123,0.000000, 204.589978, 158.783770, 0.000000,0.000000, 0.000000, 1.000000, 0.000000};
 			break;
@@ -996,8 +997,8 @@ void DJISDKNode::publishVGAStereoImage(Vehicle*            vehicle,
 	img.header.stamp = ros::Time::now(); // @todo
 	img.header.frame_id = "vga_left";
 	node_ptr->stereo_vga_front_left_publisher.publish(img);
-	sensor_msgs::CameraInfo left_camera_info = node_ptr->getCameraInfo(node_ptr->latest_camera_, true);
-	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_left_rect_publisher, img, left_camera_info, reset);
+	//sensor_msgs::CameraInfo left_camera_info = node_ptr->getCameraInfo(node_ptr->latest_camera_, true);
+	//node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_left_rect_publisher, img, left_camera_info, reset);
 
 	//processing right camera stream
 	img.height = 480;
@@ -1008,8 +1009,8 @@ void DJISDKNode::publishVGAStereoImage(Vehicle*            vehicle,
 	memcpy((char*)(&img.data[0]), recvFrame.recvData.stereoVGAImgData->img_vec[1], 480*640);
 	img.header.frame_id = "vga_right";
 	node_ptr->stereo_vga_front_right_publisher.publish(img);
-	sensor_msgs::CameraInfo right_camera_info = node_ptr->getCameraInfo(node_ptr->latest_camera_, false);
-	node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_right_rect_publisher, img, right_camera_info, reset);
+	//sensor_msgs::CameraInfo right_camera_info = node_ptr->getCameraInfo(node_ptr->latest_camera_, false);
+	//node_ptr->publishRectifiedImage(node_ptr->stereo_vga_front_right_rect_publisher, img, right_camera_info, reset);
 
 
 	node_ptr->publishCameraInfo(img.header);
